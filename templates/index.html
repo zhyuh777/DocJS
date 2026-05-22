@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocJS</title>
+<style>
+:root {
+  --glass-bg: rgba(255,255,255,0.72);
+  --glass-border: rgba(255,255,255,0.4);
+  --glass-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --text2: #6e6e73;
+  --text3: #aeaeb2;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --green: #34c759;
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+  --font-mono: "SF Mono", "Menlo", "Monaco", ui-monospace, monospace;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--text);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,113,227,0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255,149,0,0.05), transparent);
+}
+
+/* ---- Navigation Bar ---- */
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(245,245,247,0.78);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid rgba(0,0,0,0.08);
+  padding:0 24px;height:52px;
+  display:flex;align-items:center;gap:16px;
+}
+.nav .logo{
+  font-size:18px;font-weight:700;letter-spacing:-0.3px;
+  color:var(--text);white-space:nowrap;
+  display:flex;align-items:center;gap:8px;
+}
+.nav .logo .icon{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg, #0071e3, #5ac8fa);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:16px;font-weight:800;
+}
+.nav .spacer{flex:1}
+.nav .hint{font-size:12px;color:var(--text2)}
+
+/* ---- Main Layout ---- */
+.main{
+  max-width:900px;margin:0 auto;padding:24px 24px 64px;
+  display:flex;flex-direction:column;gap:20px;
+}
+
+/* ---- Glass Card ---- */
+.card{
+  background:var(--glass-bg);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--glass-shadow);
+  padding:20px 24px;
+  transition:all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.card-title{
+  font-size:13px;font-weight:600;text-transform:uppercase;
+  letter-spacing:0.5px;color:var(--text2);margin-bottom:14px;
+}
+
+/* ---- Steps Guide ---- */
+.steps{display:flex;gap:12px;flex-wrap:wrap}
+.step{
+  flex:1;min-width:140px;text-align:center;padding:14px 10px;
+  background:rgba(255,255,255,0.5);border-radius:var(--radius);
+  border:1px solid rgba(0,0,0,0.06);
+}
+.step .num{
+  width:28px;height:28px;border-radius:50%;background:var(--accent);
+  color:#fff;font-size:13px;font-weight:700;line-height:28px;
+  margin:0 auto 8px;
+}
+.step .stitle{font-size:13px;font-weight:600;margin-bottom:2px}
+.step .sdesc{font-size:11px;color:var(--text2);line-height:1.4}
+
+/* ---- Upload Zone ---- */
+.upload-zone{
+  border:2px dashed rgba(0,0,0,0.12);border-radius:var(--radius);
+  padding:28px 20px;text-align:center;cursor:pointer;
+  transition:all 0.25s;background:rgba(255,255,255,0.4);
+}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(0,113,227,0.04)}
+.upload-zone.has-file{border-style:solid;border-color:var(--green);background:rgba(52,199,89,0.06)}
+.upload-zone .uz-icon{font-size:36px;margin-bottom:8px}
+.upload-zone .uz-text{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
+.upload-zone .uz-hint{font-size:12px;color:var(--text2)}
+.upload-zone input{display:none}
+
+/* ---- Form Elements ---- */
+.form-group{margin-bottom:14px}
+.form-group:last-child{margin-bottom:0}
+.form-label{
+  display:block;font-size:12px;font-weight:600;color:var(--text2);
+  margin-bottom:5px;text-transform:uppercase;letter-spacing:0.3px;
+}
+.form-input,.form-textarea{
+  width:100%;padding:10px 14px;border:1px solid rgba(0,0,0,0.12);
+  border-radius:var(--radius-sm);font-size:14px;font-family:var(--font);
+  color:var(--text);background:rgba(255,255,255,0.6);
+  transition:all 0.2s;outline:none;
+}
+.form-input:focus,.form-textarea:focus{
+  border-color:var(--accent);box-shadow:0 0 0 4px rgba(0,113,227,0.1);
+}
+.form-textarea{min-height:90px;resize:vertical;line-height:1.6}
+
+/* ---- Preset Chips ---- */
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.preset-chip{
+  padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;
+  background:rgba(0,113,227,0.06);color:var(--accent);
+  border:1px solid rgba(0,113,227,0.15);cursor:pointer;
+  transition:all 0.2s;white-space:nowrap;
+}
+.preset-chip:hover{background:rgba(0,113,227,0.12);border-color:var(--accent)}
+.preset-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ---- Buttons ---- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px 20px;border-radius:var(--radius-sm);font-size:14px;
+  font-weight:500;font-family:var(--font);cursor:pointer;
+  border:none;transition:all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+  outline:none;white-space:nowrap;
+}
+.btn:active{transform:scale(0.97)}
+.btn-primary{
+  background:var(--accent);color:#fff;
+  box-shadow:0 2px 8px rgba(0,113,227,0.3);
+}
+.btn-primary:hover{background:var(--accent-hover);box-shadow:0 4px 16px rgba(0,113,227,0.4)}
+.btn-primary:disabled{background:#acacb5;box-shadow:none;cursor:not-allowed}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* ---- Status ---- */
+.status-bar{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-radius:var(--radius-sm);font-size:13px;
+  background:rgba(0,0,0,0.03);margin-top:12px;
+}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text3)}
+.status-dot.ok{background:var(--green)}
+.status-dot.busy{background:var(--accent);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ---- Template Badge ---- */
+.tpl-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:20px;font-size:12px;
+  background:rgba(52,199,89,0.08);color:var(--green);
+  border:1px solid rgba(52,199,89,0.2);
+}
+
+/* ---- Success State ---- */
+.success-card{
+  text-align:center;padding:32px 24px;
+}
+.success-card .check{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--green);color:#fff;font-size:28px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+  animation:popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+@keyframes popIn{
+  from{transform:scale(0);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.anim-in{animation:fadeInUp 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) both}
+.anim-in-d1{animation-delay:0.05s}
+.anim-in-d2{animation-delay:0.1s}
+.anim-in-d3{animation-delay:0.15s}
+.anim-in-d4{animation-delay:0.2s}
+
+/* ---- Responsive ---- */
+@media(max-width:720px){
+  .main{padding:16px 12px 48px;gap:14px}
+  .card{padding:16px;border-radius:var(--radius)}
+  .nav{padding:0 16px}
+  .btn{font-size:13px;padding:8px 16px}
+  .steps{gap:8px}
+  .step{min-width:100px;padding:10px 8px}
+}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12);border-radius:3px}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo">
+    <div class="icon">D</div>
+    DocJS
+  </div>
+  <div class="spacer"></div>
+  <span class="hint" id="tplBadge" style="display:none"></span>
+</nav>
+
+<main class="main">
+
+  <!-- Step 0: How to use -->
+  <div class="card anim-in anim-in-d1">
+    <div class="card-title">使用步骤</div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="stitle">设置 Key</div>
+        <div class="sdesc">填入 DeepSeek<br>API Key（本地存储）</div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <div class="stitle">选模板</div>
+        <div class="sdesc">已内置教案模板，<br>也可拖拽上传自己的</div>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <div class="stitle">写需求</div>
+        <div class="sdesc">描述你要的教案<br>或点下方预设提示词</div>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <div class="stitle">生成下载</div>
+        <div class="sdesc">AI 自动填入，<br>一键下载 Word</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="card anim-in anim-in-d1" id="cardSettings">
+    <div class="card-title">① API 设置（密钥仅存浏览器本地，不会上传）</div>
+    <div class="form-group">
+      <label class="form-label">DeepSeek API Key</label>
+      <input type="password" class="form-input" id="apiKey" placeholder="sk-..." autocomplete="off">
+    </div>
+  </div>
+
+  <!-- Template -->
+  <div class="card anim-in anim-in-d2" id="cardTemplate">
+    <div class="card-title">② 教案模板 <span class="tpl-badge" id="tplStatus">📄 内置已加载</span></div>
+    <div class="upload-zone" id="uploadZone" style="display:none;">
+      <div class="uz-icon">📄</div>
+      <div class="uz-text">拖拽 .docx 或点击上传自定义模板</div>
+      <div class="uz-hint">不传则使用内置教案模板</div>
+      <input type="file" id="fileInput" accept=".docx">
+    </div>
+    <div style="margin-top:8px;">
+      <a href="#" id="switchTpl" style="font-size:12px;color:var(--accent)">▸ 使用自定义模板（上传 .docx）</a>
+    </div>
+  </div>
+
+  <!-- Description + Presets -->
+  <div class="card anim-in anim-in-d3" id="cardDesc">
+    <div class="card-title">③ 描述你需要什么样的教案</div>
+    <div class="presets" id="presetBar">
+      <span style="font-size:12px;color:var(--text2);margin-right:4px">快捷填入：</span>
+      <span class="preset-chip" data-preset="stm32-led">STM32 点亮LED</span>
+      <span class="preset-chip" data-preset="stm32-water">STM32 流水灯</span>
+      <span class="preset-chip" data-preset="51-uart">51单片机 串口通讯</span>
+      <span class="preset-chip" data-preset="custom">自定义 ✎</span>
+    </div>
+    <textarea class="form-textarea" id="description" style="margin-top:10px"
+      placeholder="描述你的需求，例如：生成一份关于《STM32 GPIO 控制点亮LED灯》的教案，2学时，授课对象为高职一年级学生。包含教学目标（布鲁姆动词）、重点难点、教学过程（五环节）、教学反思。"></textarea>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn btn-primary" id="btnGenerate" disabled>✨ 生成教案</button>
+      <span style="font-size:12px;color:var(--text2)">AI 自动填入模板空白位置</span>
+    </div>
+    <div class="status-bar" id="statusBar" style="display:none">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText"></span>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="card anim-in anim-in-d4" id="cardResult" style="display:none"></div>
+
+</main>
+
+<script>
+// ============================================================
+// DocJS
+// ============================================================
+
+const $ = s => document.querySelector(s);
+let docId = 'builtin';
+let structure = [];
+const savedApiKey = localStorage.getItem('docjs_apikey') || '';
+$('#apiKey').value = savedApiKey;
+
+// ---- Preset prompts ----
+const PRESETS = {
+  'stm32-led': `请生成一份关于《STM32 GPIO 控制——点亮LED灯》的教案。
+课程：STM32微控制器应用，2学时，授课对象：高职一年级学生。
+教学内容：GPIO结构原理、推挽/开漏输出模式、RCC时钟使能、STM32CubeMX工程配置、HAL_GPIO_WritePin编程。
+环节：讲授+互动15min（GPIO原理）→ 知识点讲授25min（CubeMX+Keil操作）→ 任务实训30min（点亮PC13引脚LED）→ 小组讨论15min（多路LED控制）→ 总结5min。`,
+  'stm32-water': `请生成一份关于《STM32 GPIO 控制——流水灯》的教案。
+课程：STM32微控制器应用，2学时，授课对象：高职一年级学生。
+教学内容：循环结构与延时函数配合、8位LED依次点亮、往复流水效果。
+重点：移位运算实现LED逐个点亮，循环结构与延时配合。
+难点：移位边界处理、多种流水模式的编程实现。`,
+  '51-uart': `请生成一份关于《51单片机串口通讯基础》的教案。
+课程：单片机原理与应用，2学时，授课对象：高职二年级学生。
+教学内容：UART异步串行通信原理、波特率计算、SCON/TMOD寄存器配置、串口初始化编程、中断方式收发数据。
+重点：串口工作方式的配置与波特率设置，串口中断服务程序编写。
+难点：波特率误差控制、中断服务程序调试。`,
+};
+
+// ---- Load builtin template on start ----
+async function loadBuiltin() {
+  showStatus('busy', '正在加载内置模板...');
+  try {
+    const r = await fetch('/api/builtin-template');
+    const data = await r.json();
+    if (data.error) { showStatus('error', data.error); return; }
+    docId = 'builtin';
+    structure = data.structure;
+    $('#tplBadge').style.display = 'flex';
+    $('#tplBadge').innerHTML = `<span class="tpl-badge">📄 内置教案模板 — ${data.block_count} 个位置待填充</span>`;
+    $('#tplStatus').textContent = `📄 内置已加载 — ${data.block_count} 个待填位置`;
+    $('#btnGenerate').disabled = !$('#apiKey').value.trim();
+    showStatus('ok', `内置模板已就绪 — ${data.block_count} 个位置待 AI 填充`);
+  } catch(e) { showStatus('error', '加载模板失败: ' + e.message); }
+}
+loadBuiltin();
+
+// ---- Upload custom template (hidden by default) ----
+const uploadZone = $('#uploadZone');
+const fileInput = $('#fileInput');
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f?.name.endsWith('.docx')) handleUpload(f);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) handleUpload(e.target.files[0]);
+});
+
+async function handleUpload(file) {
+  showStatus('busy', '正在解析模板...');
+  const form = new FormData();
+  form.append('file', file);
+  try {
+    const r = await fetch('/api/upload', { method: 'POST', body: form });
+    const data = await r.json();
+    if (data.error) { showStatus('error', data.error); return; }
+    docId = data.doc_id;
+    structure = data.structure;
+    uploadZone.classList.add('has-file');
+    $('#tplBadge').style.display = 'flex';
+    $('#tplBadge').innerHTML = `<span class="tpl-badge" style="background:rgba(0,113,227,0.06);color:var(--accent);border-color:rgba(0,113,227,0.2)">📎 ${data.filename} — ${data.block_count} 个位置</span>`;
+    $('#tplStatus').textContent = `📎 自定义：${data.filename} (${data.block_count} 位置)`;
+    $('#btnGenerate').disabled = !$('#apiKey').value.trim();
+    showStatus('ok', `模板已加载 — ${data.block_count} 个位置`);
+  } catch(e) { showStatus('error', '上传失败: ' + e.message); }
+}
+
+// ---- Toggle custom template ----
+let customTplUsed = false;
+$('#switchTpl').addEventListener('click', e => {
+  e.preventDefault();
+  uploadZone.style.display = 'block';
+  $('#switchTpl').style.display = 'none';
+});
+$('#cardTemplate').addEventListener('dblclick', () => {
+  uploadZone.style.display = uploadZone.style.display === 'none' ? 'block' : 'none';
+});
+
+// ---- API Key input -> save & enable generate ----
+$('#apiKey').addEventListener('input', () => {
+  const key = $('#apiKey').value.trim();
+  localStorage.setItem('docjs_apikey', key);
+  $('#btnGenerate').disabled = !key || !docId;
+});
+
+// If key was saved, enable button
+if (savedApiKey && docId) $('#btnGenerate').disabled = false;
+
+// ---- Preset chips ----
+document.getElementById('presetBar').addEventListener('click', e => {
+  const chip = e.target.closest('.preset-chip');
+  if (!chip) return;
+  const preset = chip.dataset.preset;
+  if (preset === 'custom') {
+    $('#description').value = '';
+    $('#description').focus();
+  } else if (PRESETS[preset]) {
+    $('#description').value = PRESETS[preset];
+  }
+  // Visual active
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+});
+
+// ---- Generate ----
+$('#btnGenerate').addEventListener('click', async () => {
+  const apiKey = $('#apiKey').value.trim();
+  const description = $('#description').value.trim();
+  if (!apiKey) { showStatus('error', '请先设置 API Key'); return; }
+  if (!description) { showStatus('error', '请描述需求或点击预设提示词'); return; }
+
+  showStatus('busy', 'AI 正在生成教案...');
+  $('#btnGenerate').disabled = true;
+
+  try {
+    const r = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ doc_id: docId, api_key: apiKey, description })
+    });
+    const data = await r.json();
+    if (data.error) { showStatus('error', data.error); $('#btnGenerate').disabled = false; return; }
+    showStatus('ok', `✓ 已填充 ${data.filled_count}/${data.total_blocks} 个位置`);
+    showResult(data);
+    $('#btnGenerate').disabled = false;
+  } catch(e) { showStatus('error', '请求失败: ' + e.message); $('#btnGenerate').disabled = false; }
+});
+
+// ---- Result ----
+function showResult(data) {
+  const card = $('#cardResult');
+  card.style.display = 'block';
+  card.innerHTML = `
+    <div class="success-card">
+      <div class="check">✓</div>
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:8px">教案已生成</h2>
+      <p style="color:var(--text2);margin-bottom:20px">
+        成功填充 <strong>${data.filled_count}</strong> / ${data.total_blocks} 个位置
+      </p>
+      <div class="btn-row" style="justify-content:center">
+        <a href="${data.download_url}" class="btn btn-primary" download>📥 下载 Word</a>
+        <button class="btn btn-secondary" onclick="window.open('${data.download_url}','_blank')">👁 预览</button>
+      </div>
+    </div>
+  `;
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ---- Status ----
+function showStatus(type, text) {
+  const bar = $('#statusBar');
+  bar.style.display = 'flex';
+  $('#statusDot').className = 'status-dot ' + type;
+  $('#statusText').textContent = text;
+}
+</script>
+</body>
+</html>
